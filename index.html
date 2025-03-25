@@ -1,0 +1,258 @@
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المركز الطبي - لوحة التحكم</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">المركز الطبي</div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be inserted here -->
+            </div>
+            <div class="nav-links">
+                <button data-view="login" class="nav-link active guest-only">تسجيل الدخول</button>
+                <button data-view="register" class="nav-link guest-only">تسجيل جديد</button>
+                
+                <!-- Admin Only Links -->
+                <button data-view="central" class="nav-link admin-only">التقارير المركزية</button>
+                <button data-view="branches" class="nav-link admin-only">تقارير الفروع</button>
+                <button data-view="services" class="nav-link admin-only">الخدمات</button>
+                
+                <!-- Branch Only Links -->
+                <button data-view="patients" class="nav-link branch-only">إدارة المرضى</button>
+                <button data-view="appointments" class="nav-link branch-only">إدارة المواعيد</button>
+                <button data-view="payments" class="nav-link branch-only">إدارة المدفوعات</button>
+                <button data-view="doctors" class="nav-link branch-only">إدارة الأطباء</button>
+                
+                <button id="logoutBtn" class="nav-link admin-only branch-only">تسجيل خروج</button>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            <div id="loginView" class="view">
+                <h2>تسجيل الدخول</h2>
+                <form id="loginForm" class="auth-form">
+                    <input type="text" placeholder="اسم المستخدم" required>
+                    <input type="password" placeholder="كلمة المرور" required>
+                    <button type="submit">دخول</button>
+                </form>
+            </div>
+
+            <div id="registerView" class="view hidden">
+                <h2>تسجيل مستخدم جديد</h2>
+                <form id="registerForm" class="auth-form">
+                    <input type="text" placeholder="الاسم الكامل" required>
+                    <input type="email" placeholder="البريد الإلكتروني" required>
+                    <input type="password" placeholder="كلمة المرور" required>
+                    <select required>
+                        <option value="">اختر الفرع</option>
+                        <!-- Branches will be populated from config -->
+                    </select>
+                    <button type="submit">تسجيل</button>
+                </form>
+            </div>
+
+            <div id="centralView" class="view hidden">
+                <h2>التقارير المركزية</h2>
+                <div class="stats-grid">
+                    <!-- Stats will be inserted here -->
+                </div>
+                <div class="data-tables">
+                    <table id="patientsTable">
+                        <thead>
+                            <tr>
+                                <th>رقم الملف</th>
+                                <th>اسم المريض</th>
+                                <th>الهاتف</th>
+                                <th>الفرع</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    
+                    <table id="appointmentsTable">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الوقت</th>
+                                <th>المريض</th>
+                                <th>الخدمة</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    
+                    <table id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المريض</th>
+                                <th>المبلغ</th>
+                                <th>طريقة الدفع</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="branchesView" class="view hidden">
+                <h2>تقارير الفروع</h2>
+                <div class="branch-actions">
+                    <button id="addPatientBtn" class="btn-action">إضافة مريض جديد</button>
+                    <button id="addAppointmentBtn" class="btn-action">حجز موعد</button>
+                    <button id="addPaymentBtn" class="btn-action">تسجيل دفعة</button>
+                </div>
+                <div class="branch-data">
+                    <!-- Branch specific data will be loaded here -->
+                </div>
+            </div>
+
+            <div id="servicesView" class="view hidden">
+                <h2>الخدمات</h2>
+                <table id="servicesTable">
+                    <thead>
+                        <tr>
+                            <th>الخدمة</th>
+                            <th>التكلفة</th>
+                            <th>الحالة</th>
+                            <th>التفاصيل</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="servicesTableBody">
+                        <!-- Services will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="patientsView" class="view hidden">
+                <h2>إدارة المرضى</h2>
+                <form id="addPatientForm" class="data-form">
+                    <h3>إضافة مريض جديد</h3>
+                    <input type="text" name="patientName" placeholder="اسم المريض" required>
+                    <input type="tel" name="phone" placeholder="رقم الهاتف" required>
+                    <button type="submit">إضافة مريض</button>
+                </form>
+                <table id="patientsTable">
+                    <thead>
+                        <tr>
+                            <th>رقم الملف</th>
+                            <th>اسم المريض</th>
+                            <th>الهاتف</th>
+                            <th>الفرع</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div id="doctorsView" class="view hidden">
+                <h2>إدارة الأطباء</h2>
+                <form id="addDoctorForm" class="data-form">
+                    <h3>إضافة طبيب جديد</h3>
+                    <input type="text" name="doctorName" placeholder="اسم الطبيب" required>
+                    <input type="text" name="specialty" placeholder="التخصص" required>
+                    <input type="tel" name="phone" placeholder="رقم الهاتف" required>
+                    <button type="submit">إضافة طبيب</button>
+                </form>
+                <table id="doctorsTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>التخصص</th>
+                            <th>الهاتف</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="appointmentsView" class="view hidden">
+                <h2>إدارة المواعيد</h2>
+                <form id="addAppointmentForm" class="data-form">
+                    <h3>إضافة موعد جديد</h3>
+                    <select name="patientId" required>
+                        <option value="">اختر المريض</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <select name="serviceId" required>
+                        <option value="">اختر الخدمة</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <input type="date" name="date" required>
+                    <input type="time" name="time" required>
+                    <button type="submit">إضافة موعد</button>
+                </form>
+                <table id="appointmentsTable">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الوقت</th>
+                            <th>المريض</th>
+                            <th>الخدمة</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div id="paymentsView" class="view hidden">
+                <h2>إدارة المدفوعات</h2>
+                <form id="addPaymentForm" class="data-form">
+                    <h3>تسجيل دفعة جديدة</h3>
+                    <select name="patientId" required>
+                        <option value="">اختر المريض</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <input type="number" name="amount" placeholder="المبلغ" required>
+                    <select name="method" required>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بطاقة">بطاقة</option>
+                    </select>
+                    <button type="submit">تسجيل الدفعة</button>
+                </form>
+                <table id="paymentsTable">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>المريض</th>
+                            <th>المبلغ</th>
+                            <th>طريقة الدفع</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="script.js"></script>
+    <script>
+        function initGoogleApi() {
+            gapi.load('client', async function() {
+                try {
+                    await gapi.client.init({
+                        apiKey: 'AIzaSyBdeVXHBZh-JXWBRg-JYYPsZNQXPdViMDw',  
+                        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+                    });
+                    console.log('Google Sheets API initialized');
+                } catch (error) {
+                    console.error('Error initializing Google Sheets:', error);
+                }
+            });
+        }
+    </script>
+    <script async defer src="https://apis.google.com/js/api.js?onload=initGoogleApi"></script>
+</body>
+</html>
